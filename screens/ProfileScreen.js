@@ -100,16 +100,18 @@ export default function ProfileScreen(props) {
           <Text>LOGOUT</Text>
         </TouchableOpacity>
 
-        <FontAwesome name="users" size={25} color={"#161519"} />
+        <View style={styles.icon}>
+        <FontAwesome name="users" size={20} color={"#161519"} />
         <Text style={styles.textIcon}>Mes amis</Text>
+        </View>
 
         <View style={styles.icon}>
-          <FontAwesome name="rocket" size={30} color={"#161519"} />
+          <FontAwesome name="rocket" size={20} color={"#161519"} />
           <Text style={styles.textIcon}>Messagerie</Text>
         </View>
 
         <View style={styles.icon}>
-          <FontAwesome name="heart" size={25} color={"#161519"} />
+          <FontAwesome name="heart" size={20} color={"#161519"} />
           <Text style={styles.textIcon}>Mes Favoris</Text>
         </View>
       </View>

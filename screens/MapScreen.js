@@ -39,13 +39,14 @@ import { useIsFocused } from '@react-navigation/native';
 
 import { address } from "../address";
 
-export default function MapScreen(props, navigation) {
+export default function MapScreen(props) {
   const dispatch = useDispatch();
   const events = useSelector((state) => state.events.value);
+ 
   const reduxResearch = useSelector((state) => state.list.value);
   const researchLowerCase = reduxResearch.toLowerCase();
 
-  const [selectedEvent, setSelectedEvent] = useState(null);
+  //const [selectedEvent, setSelectedEvent] = useState(null);
   const [research, setResearch] = useState(""); // état de la recherche en Input
   const [isResearch, setIsResearch] = useState(false); // état recherche active/inactive
   const [searchFilter, setSearchFilter] = useState("creator");
@@ -76,7 +77,7 @@ export default function MapScreen(props, navigation) {
           setCurrentPosition(location.coords);
         });
       }
-      fetch(`http://${address}/events/events`)
+      fetch('https://backend-tendance.vercel.app/events/events')
       .then((response) => response.json())
       .then((data) => {
         if (data) {
@@ -85,10 +86,6 @@ export default function MapScreen(props, navigation) {
         }
       })
     })();
-
-    // setSearchFilter("type");
-    // setResearch(reduxResearch);
-    // setIsResearch(true);
   }, [isFocused]);
 
   //se centrer sur l'event qui pop up
@@ -126,8 +123,7 @@ export default function MapScreen(props, navigation) {
       //console.log(selected)
     }
   };
-  // let Log = timeToFilter.slice(0,10);
-  // console.log(Log);
+
   //Affichage du calendrier en Android
   const showAndroidDatePicker = async () => {
     try {
@@ -211,6 +207,7 @@ export default function MapScreen(props, navigation) {
     finalDataBase = events;
     positionBottom = -50
     //console.log({ NewDatabase: events });
+    console.log({finalDatabase: finalDataBase})
   }
   if (!isResearch || searchFilter === "date") {
     if (timeToFilter === "today") {
@@ -659,7 +656,7 @@ export default function MapScreen(props, navigation) {
             <Callout tooltip onPress={() => handlePress(event)} title="Event">
               <View>
                 <View style={styles.bubble}>
-                  <Image source={{uri:event.eventCover}} style={styles.bubbleImage} />
+                  <Image source={require('../assets/august-phlieger-CREqtqgBFcU-unsplash.jpg') } style={styles.bubbleImage} size={100} onError={(error) => console.error('Image load error:', error)}/>
                   <Text style={styles.eventName}>{event.eventName}</Text>
 
                   <Text style={styles.typeEvent}>
@@ -683,7 +680,7 @@ export default function MapScreen(props, navigation) {
       <TouchableOpacity onPress={() => handleSubmit()} style={styles.pressableButton}>
         <FontAwesome name={"bars"} size={30} color={"#b2b2b2"} />
       </TouchableOpacity>
-      
+
       <TouchableOpacity
         onPress={() => handleSatellite()}
         style={{    position: "absolute",
@@ -747,6 +744,24 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 50,
   },
+  pressableButtonFusee: {
+    position: "absolute",
+    bottom: -50, //-50 && 20
+    right: 110,
+    backgroundColor: "white",
+    padding: 10,
+    borderRadius: 50,
+  },
+
+  pressableButtonDown: {
+    position: "absolute",
+    bottom: -50, //-50 && 20
+    right: 215,
+    backgroundColor: "white",
+    padding: 10,
+    borderRadius: 50,
+  },
+  
   selectDate: {
     borderWidth: 3,
     position: "absolute",
@@ -849,12 +864,13 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   bubbleImage: {
-    width: 250,
-    height: "auto",
+    width: 50,
+    height: 'auto',
     minHeight: 130,
     borderTopRightRadius: 20,
     borderTopLeftRadius: 20,
     marginBottom: 10,
+    zIndex: 1,
   },
   eventName: {
     fontSize: 20,

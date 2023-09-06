@@ -12,10 +12,13 @@ export const eventsSlice = createSlice({
     setEvents:(state, action)=>{
       state.value=action.payload;
     },
+    addEvent: (state, action) => {
+      state.value.push(action.payload);
+    },
    
     // }
   },
 });
 
-export const { setEvents, addParticipant,removeParticipant,addInter,removeInter } = eventsSlice.actions;
+export const { setEvents, addEvent } = eventsSlice.actions;
 export default eventsSlice.reducer;

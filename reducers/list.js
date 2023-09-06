@@ -11,7 +11,7 @@ export const listSlice = createSlice({
     storeResearch: (state, action) => {
       state.value = action.payload;
       console.log(action.payload);
-      console.log("patate!");
+      //console.log("patate!");
     },
     resetResearch: (state) => {
       state.value = "";

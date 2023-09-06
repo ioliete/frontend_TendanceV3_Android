@@ -59,7 +59,7 @@ export default function PublishScreen() {
       quality: 1,
     });
 
-    // console.log(result)
+    console.log(result)
 
     // const compressedImage = await ImageManipulator.manipulateAsync(
     //   result.assets[0].uri,
@@ -75,7 +75,7 @@ export default function PublishScreen() {
       type: "image/jpeg",
     });
 
-    fetch(`http://${address}/events/upload`, {
+    fetch(`https://${address}/events/upload`, {
       method: "POST",
       body: formData,
     })
@@ -150,22 +150,6 @@ export default function PublishScreen() {
       setShowDatePicker(false);
     }
   };
-
-  //Affichage du calendrier en Android
-  // const showAndroidDatePicker = async () => {
-  //   try {
-  //     const { action, year, month, day } = await DatePickerAndroid.open({
-  //       date: selectedDate,
-  //       mode: "calendar",
-  //     });
-  //     if (action !== DatePickerAndroid.dismissedAction) {
-  //       const selectedDate = new Date(year, month, day);
-  //       handleDateChange(null, selectedDate);
-  //     }
-  //   } catch ({ code, message }) {
-  //     console.warn("Cannot open date picker", message);
-  //   }
-  // };
 
   const hideDatePicker = () => {
     setShowDatePicker(false);
@@ -245,7 +229,7 @@ export default function PublishScreen() {
       address: addresse,
       price: price,
       description: description,
-      eventCover: "",
+      eventCover: picture,
       amis: "",
       latitude: null,
       longitude: null,
@@ -255,7 +239,7 @@ export default function PublishScreen() {
     // todo fetch post pour publier dans la data ...
     setAffiche(false);
     // /publishEvent
-    fetch(`http://${address}/events/publishEvent`, {
+    fetch(`https://${address}/events/publishEvent`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(event),
@@ -460,7 +444,7 @@ export default function PublishScreen() {
           <Text>Ajouter des amis</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.btnAjout}>
+        <TouchableOpacity style={styles.btnAjout} onPress={()=>handlePictureImport()}>
           <View style={styles.plus}>
             <FontAwesome name="plus" size={15} color={"white"} />
           </View>
@@ -468,14 +452,14 @@ export default function PublishScreen() {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity style={styles.btnPublier} onPress={() => handlePublish()}>
+      <TouchableOpacity style={styles.btnPublier} onPress={() => handlePublish()} disabled={picture?false:true}>
         <Text style={styles.textStylePublish}>Publier</Text>
       </TouchableOpacity>
     </KeyboardAvoidingView>
   ) : (
     <View style={styles.container}>
       <Text>Événement créé d^_^b</Text>
-      <TouchableOpacity onPress={() => handleResetAll()} style={styles.btnRePublier}>
+      <TouchableOpacity onPress={() => {handleResetAll(); setPicture(null)}} style={styles.btnRePublier}>
         <Text style={styles.textStylePublish}>Publier de nouveau !</Text>
       </TouchableOpacity>
     </View>
@@ -491,52 +475,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center", // Ajout de cette ligne pour centrer verticalement les éléments
   },
-  // hourFin: {
-  //   marginBottom: 5,
-  // },
+
   containerDate: {
     flexDirection: "row",
     // marginTop: 10,
     justifyContent: "space-between",
     marginBottom: 10,
   },
-  // containerDateTwo: {
-  //   flexDirection: "row",
-  //   marginTop: 10,
-  //   justifyContent: "space-between",
-  // },
-
-  // datePicker: {
-  //   position: "absolute",
-  //   borderRadius: 5,
-  //   borderColor: "rgba(22, 21, 25, 1)",
-  //   borderWidth: 1,
-  //   height: 30,
-  //   width: 100,
-  //   marginLeft: 10,
-  // },
-
-  // datePickerStart: {
-  //   position: "absolute",
-  //   borderRadius: 5,
-  //   borderColor: "rgba(22, 21, 25, 1)",
-  //   borderWidth: 1,
-  //   height: 30,
-  //   marginLeft: 140,
-  //   marginTop: -10,
-  //   width: 70,
-  // },
-
-  // datePickerEnd: {
-  //   position: "absolute",
-  //   borderRadius: 5,
-  //   borderColor: "rgba(22, 21, 25, 1)",
-  //   borderWidth: 1,
-  //   height: 30,
-  //   marginLeft: 240,
-  //   marginTop: -10,
-  //   width: 70,
-  // },
 
   title: {
     fontSize: 20,

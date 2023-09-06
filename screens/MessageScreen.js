@@ -218,7 +218,7 @@ export default function MessageScreen(props) {
       console.log("Connecté au serveur Socket.io");
     });
 
-    fetch(`http://${adress}/messagerie/conversation`, {
+    fetch(`https://${address}/messagerie/conversation`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ idUser: conversation.idUser, idAmi: conversation.idAmi }),
