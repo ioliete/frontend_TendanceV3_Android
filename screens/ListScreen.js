@@ -35,10 +35,6 @@ import ForFilterDate from "./components/ForFilterDate";
 import { setOpenModal } from "../reducers/openModal";
 import Modale from "./components/Modale";
 
-//ToDo
-//- function pour trier la data des events par Date et la classer dans des tableaux
-//- faire un mapping des tableaux des Date
-
 //-------------------------------- début de la fonction
 
 export default function ListScreen({ navigation }) {
@@ -229,9 +225,9 @@ export default function ListScreen({ navigation }) {
   if (!isResearch || searchFilter === "date") {
     if (timeToFilter === "today") {
       finalDataBase = dataDynamic;
-    } else {
+    } /*else {
       finalDataBase = ForFilterDate(dataDynamic, timeToFilter);
-    }
+    }*/
   } else {
     if (searchFilter === "creator") {
       finalDataBase = ForFilterCreator(dataDynamic, researchLowerCase);
@@ -421,7 +417,7 @@ export default function ListScreen({ navigation }) {
       </TouchableOpacity>
 
       {/* condition de rendu du date picker en fonction du système ios ou android */}
-      {Platform.OS === "ios" && (
+      {/* {Platform.OS === "ios" && (
         <DateTimePicker
           style={{
             opacity: opacityValue,
@@ -462,7 +458,7 @@ export default function ListScreen({ navigation }) {
           onChange={handleDateChange}
           onDismiss={hideDatePicker}
         />
-      )}
+      )} */}
     </View>
   );
 }

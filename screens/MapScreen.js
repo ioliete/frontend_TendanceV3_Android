@@ -35,7 +35,9 @@ import { setOpenModal } from "../reducers/openModal";
 
 import eventData from "../data/data";
 
-const BACKEND_ADDRESS = "https://backend-tendance.vercel.app";
+import { useIsFocused } from '@react-navigation/native';
+
+import { address } from "../address";
 
 export default function MapScreen(props, navigation) {
   const dispatch = useDispatch();
@@ -56,12 +58,13 @@ export default function MapScreen(props, navigation) {
   const currentPositionMarker = require("../assets/photoProfile.jpg");
   const [initialRegion, setInitialRegion] = useState(null);
   const mapRef = useRef(null); //! constante pour utiliser handleMarkerPress et se centrer sur l'event qui pop up
+  const isFocused = useIsFocused();
 
-  const handleSearch = () => {
-    dispatch(storeResearch(research));
-    setResearch("");
-    setIsResearch(true);
-  };
+  // const handleSearch = () => {
+  //   dispatch(storeResearch(research));
+  //   setResearch("");
+  //   setIsResearch(true);
+  // };
 
   useEffect(() => {
     (async () => {
@@ -73,12 +76,20 @@ export default function MapScreen(props, navigation) {
           setCurrentPosition(location.coords);
         });
       }
+      fetch(`http://${address}/events/events`)
+      .then((response) => response.json())
+      .then((data) => {
+        if (data) {
+          const filteredEvents = data.filter((event) => new Date(event.date) >= new Date());
+          dispatch(setEvents(filteredEvents));
+        }
+      })
     })();
 
-    setSearchFilter("type");
-    setResearch(reduxResearch);
-    setIsResearch(true);
-  }, []);
+    // setSearchFilter("type");
+    // setResearch(reduxResearch);
+    // setIsResearch(true);
+  }, [isFocused]);
 
   //se centrer sur l'event qui pop up
   const handleMarkerPress = (event) => {
@@ -139,6 +150,12 @@ export default function MapScreen(props, navigation) {
     //!filtre actif ---------------------------------------------------------------------------------------------------
   };
 
+  const handleSearch = () => {
+    dispatch(storeResearch(research));
+    setResearch("");
+    setIsResearch(true);
+  };
+
   const handlePress = (data) => {
     if (user === null) {
       //console.log("null");
@@ -192,23 +209,29 @@ export default function MapScreen(props, navigation) {
 
   if (!isResearch || searchFilter !== "date") {
     finalDataBase = events;
-    console.log({ NewDatabase: events });
+    positionBottom = -50
+    //console.log({ NewDatabase: events });
   }
   if (!isResearch || searchFilter === "date") {
     if (timeToFilter === "today") {
       finalDataBase = events;
+      positionBottom = -50
     } else {
       finalDataBase = ForFilterDate(events, timeToFilter);
+      positionBottom = -50
     }
   } else {
     if (searchFilter === "creator") {
       finalDataBase = ForFilterCreator(events, researchLowerCase);
+      positionBottom = 20
     }
     if (searchFilter === "type") {
       finalDataBase = ForFilterType(events, researchLowerCase);
+      positionBottom = 20
     }
     if (searchFilter === "eventName") {
       finalDataBase = ForFilterEventName(events, researchLowerCase);
+      positionBottom = 20
     }
   }
   if (isResearch) {
@@ -230,16 +253,6 @@ export default function MapScreen(props, navigation) {
   const user = useSelector((state) => state.user.value);
   const isModalOpen = useSelector((state) => state.openModal.value);
 
-  // const handlePress = (data) => {
-  //   if (user === null) {
-  //     console.log("null");
-  //     dispatch(setOpenModal(!isModalOpen));
-  //   } else {
-  //     console.log(data);
-  //     props.navigation.navigate("Event", { screen: "EventScreen" });
-  //     dispatch(setEvent(data));
-  //   }
-  // };
 
   const handleInitialRegion = (region) => {
     if (!initialRegion) {
@@ -247,16 +260,23 @@ export default function MapScreen(props, navigation) {
     }
   };
 
-  // const displayEvents = () => {
+  const handleSatellite = () => {
+    mapRef.current.animateToRegion({
+      latitude: currentPosition.latitude,
+      longitude: currentPosition.longitude,
+      latitudeDelta: 100,
+      longitudeDelta: 100,
+    });
+  }
 
-  //     dispatch(displayIncomingEvents({ name: newPlace, latitude: tempCoordinates.latitude, longitude: tempCoordinates.longitude }));
-  //     setModalVisible(false);
-  //     setNewPlace('');
-  //   };
-
-  // const markers = events.map((data, i) => {
-  //   return <Marker key={i} coordinate={{ latitude: data.latitude, longitude: data.longitude }} title={data.eventName} />;
-  // });
+  const handleCrash = () => {
+    mapRef.current.animateToRegion({
+      latitude: currentPosition.latitude,
+      longitude: currentPosition.longitude,
+      latitudeDelta: 0.1,
+      longitudeDelta: 0.1,
+    });
+  }
 
   //Fond de carte personnalisé
   const mapStyle = [
@@ -560,7 +580,7 @@ export default function MapScreen(props, navigation) {
             flexDirection: "row",
             alignItems: "center",
             borderWidth: 1,
-            bottom: -485,
+            bottom: -515,
             left: 15,
             backgroundColor: "white",
             padding: 10,
@@ -587,6 +607,7 @@ export default function MapScreen(props, navigation) {
           mode="date"
           display="default"
           onChange={handleDateChange}
+          
         />
       )}
 
@@ -638,7 +659,7 @@ export default function MapScreen(props, navigation) {
             <Callout tooltip onPress={() => handlePress(event)} title="Event">
               <View>
                 <View style={styles.bubble}>
-                  <Image source={getImageByType(event.type)} style={styles.bubbleImage} />
+                  <Image source={{uri:event.eventCover}} style={styles.bubbleImage} />
                   <Text style={styles.eventName}>{event.eventName}</Text>
 
                   <Text style={styles.typeEvent}>
@@ -661,6 +682,29 @@ export default function MapScreen(props, navigation) {
       </MapView>
       <TouchableOpacity onPress={() => handleSubmit()} style={styles.pressableButton}>
         <FontAwesome name={"bars"} size={30} color={"#b2b2b2"} />
+      </TouchableOpacity>
+      
+      <TouchableOpacity
+        onPress={() => handleSatellite()}
+        style={{    position: "absolute",
+        bottom: positionBottom,
+        right: 110,
+        backgroundColor: "white",
+        padding: 10,
+        borderRadius: 50,}}
+      >
+        <FontAwesome name={"rocket"} size={30} color={"#b2b2b2"} />
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => handleCrash()}
+        style={{  position: "absolute",
+        bottom: positionBottom, //-50 && 20
+        right: 215,
+        backgroundColor: "white",
+        padding: 10,
+        borderRadius: 50,}}
+      >
+        <FontAwesome name={"sort-down"} size={30} color={"#b2b2b2"} />
       </TouchableOpacity>
 
       <View></View>
@@ -821,14 +865,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 5,
     alignItems: "center",
-  },
-  arrow: {
-    // backgroundColor: 'transparent',
-    // borderColor: 'transparent',
-    // borderTopColor: '#fff',
-    // borderWidth: 16,
-    // alignSelf: 'center',
-    // marginTop: -32,
   },
   arrowBorder: {
     backgroundColor: "transparent",

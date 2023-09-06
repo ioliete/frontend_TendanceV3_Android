@@ -18,21 +18,21 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import Modale from "./components/Modale";
 import { setOpenModal } from "../reducers/openModal";
+import { address } from "../address";
+import { addEvent } from "../reducers/events";
+
+import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator";
 
 export default function PublishScreen() {
-  //todo style mieux !
-  // todo Price gerer mieux mettre un input correct
-  // todo Status Bar et KeyboardAvoidinView
-  // todo ajouter Amis
-  // todo Acceder a la galerie
-  // todo Publier
-
   const [name, setName] = useState("");
   const [addresse, setAdresse] = useState("");
   const [hourStart, setHourStart] = useState(new Date());
   const [hourEnd, setHourEnd] = useState(new Date());
   //const [date, setDate] = useState(new Date());
   const [dateText, setDateText] = useState("");
+  const [hourStartText, setHourStartText] = useState("");
+  const [hourEndText, setHourEndText] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -41,8 +41,49 @@ export default function PublishScreen() {
   const [selectedOptionType, setSelectedOptionType] = useState(null);
   const [selectedOptionAccess, setSelectedOptionAccess] = useState(null);
 
+  const [picture, setPicture] = useState(null);
+
   // Afficher si event publish ou pas
   const [affiche, setAffiche] = useState(true);
+
+  const handlePictureImport = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      alert("Permission denied");
+    }
+
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: false,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    // console.log(result)
+
+    // const compressedImage = await ImageManipulator.manipulateAsync(
+    //   result.assets[0].uri,
+    //   [{ resize: { width: 300, height: 300 } }],
+    //   { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+    // );
+
+    const formData = new FormData();
+
+    formData.append("photoFromFront", {
+      uri: result.assets[0].uri,
+      name: "photo.jpg",
+      type: "image/jpeg",
+    });
+
+    fetch(`http://${address}/events/upload`, {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        setPicture(data.url);
+      });
+  };
 
   //ResetAll
   const handleResetAll = () => {
@@ -79,7 +120,7 @@ export default function PublishScreen() {
     { id: 5, label: "Science" },
   ];
   const optionsAccess = [
-    { id: 1, label: "Prive" },
+    { id: 1, label: "Privé" },
     { id: 2, label: "Public" },
   ];
 
@@ -111,20 +152,20 @@ export default function PublishScreen() {
   };
 
   //Affichage du calendrier en Android
-  const showAndroidDatePicker = async () => {
-    try {
-      const { action, year, month, day } = await DatePickerAndroid.open({
-        date: selectedDate,
-        mode: "calendar",
-      });
-      if (action !== DatePickerAndroid.dismissedAction) {
-        const selectedDate = new Date(year, month, day);
-        handleDateChange(null, selectedDate);
-      }
-    } catch ({ code, message }) {
-      console.warn("Cannot open date picker", message);
-    }
-  };
+  // const showAndroidDatePicker = async () => {
+  //   try {
+  //     const { action, year, month, day } = await DatePickerAndroid.open({
+  //       date: selectedDate,
+  //       mode: "calendar",
+  //     });
+  //     if (action !== DatePickerAndroid.dismissedAction) {
+  //       const selectedDate = new Date(year, month, day);
+  //       handleDateChange(null, selectedDate);
+  //     }
+  //   } catch ({ code, message }) {
+  //     console.warn("Cannot open date picker", message);
+  //   }
+  // };
 
   const hideDatePicker = () => {
     setShowDatePicker(false);
@@ -139,6 +180,8 @@ export default function PublishScreen() {
     if (selected) {
       setHourStart(selected);
     }
+    const formattedTimeStart = selected.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+    setHourStartText(formattedTimeStart);
     setShowTimeStartPicker(false);
   };
 
@@ -150,6 +193,8 @@ export default function PublishScreen() {
     if (selected) {
       setHourEnd(selected);
     }
+    const formattedTimeEnd = selected.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+    setHourEndText(formattedTimeEnd);
     setShowTimeEndPicker(false);
   };
 
@@ -157,19 +202,6 @@ export default function PublishScreen() {
     setShowTimeStartPicker(false);
     setShowTimeEndPicker(false);
   };
-
-  // publier
-  // creator: 'user',
-  // 	eventName: 'GymTonic2000',
-  //     type: 'sport',
-  //     date: '2023-11-11',
-  //     hourStart: '07:45',
-  //     hourEnd: '08:45',
-  //     address: 'rue de Sèze 69006 Lyon',
-  //     price: '3',
-  //     website: '',
-  //     description: 'Lorem ipsum dolor sit amet. Qui voluptates internos nam inventore atque aut culpa repellendus ut velit officia. Et velit vero sed velit reiciendis ut accusantium dolorem cum voluptates corporis sit quidem architecto.',
-  //     eventCover: '',
 
   const user = useSelector((state) => state.user.value);
 
@@ -223,7 +255,7 @@ export default function PublishScreen() {
     // todo fetch post pour publier dans la data ...
     setAffiche(false);
     // /publishEvent
-    fetch("https://backend-tendance.vercel.app/events/publishEvent", {
+    fetch(`http://${address}/events/publishEvent`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(event),
@@ -234,6 +266,16 @@ export default function PublishScreen() {
       });
   };
 
+  const [selectedImage, setSelectedImage] = useState(null);
+
+  const pickImage = () => {
+    ImagePicker.launchImageLibrary({}, (response) => {
+      if (!response.didCancel && !response.error) {
+        setSelectedImage(response.uri);
+      }
+    });
+  };
+
   return !user ? (
     <View>
       <Modale></Modale>
@@ -241,9 +283,10 @@ export default function PublishScreen() {
   ) : affiche ? (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
       <StatusBar backgroundColor="#f1f1f1" barStyle="dark-content" />
-      <ScrollView></ScrollView>
-      <Text style={styles.title}>Créer un event</Text>
-
+      <Text style={styles.title}>
+        <FontAwesome name="rocket" size={10} color={"rgba(22, 21, 25, 1)"} /> Créer un event{" "}
+        <FontAwesome name="circle" size={10} color={"rgba(22, 21, 25, 1)"} />
+      </Text>
       <View style={styles.viewAccess}>
         {optionsAccess.map((option) => (
           <TouchableOpacity
@@ -316,7 +359,7 @@ export default function PublishScreen() {
       </View>
       <View style={styles.containerInput}>
         <View>
-          <TextInput placeholder="Name" onChangeText={(value) => setName(value)} value={name} style={styles.input} />
+          <TextInput placeholder="Nom de l'event" onChangeText={(value) => setName(value)} value={name} style={styles.input} />
         </View>
 
         <View>
@@ -329,42 +372,43 @@ export default function PublishScreen() {
         </View>
 
         <View style={styles.containerDate}>
-          <View style={styles.containerDateOne}>
-            {/* Bouton sélection date calendrier */}
+          {/* Bouton sélection date calendrier */}
 
-            <View style={styles.selectDate}>
-              <TouchableOpacity onPress={toggleDatePicker}>
-                <Text>{dateText ? dateText : "Sélectionner une date"}</Text>
-              </TouchableOpacity>
-            </View>
-
-            {Platform.OS === "ios" && (
-              <DateTimePicker
-                style={styles.datePicker}
-                value={selectedDate}
-                mode="date"
-                display="default"
-                onChange={handleDateChange}
-              />
-            )}
-
-            {showDatePicker && Platform.OS === "android" && (
-              <DateTimePicker
-                style={styles.datePicker}
-                value={selectedDate}
-                mode="date"
-                display="calendar"
-                onChange={handleDateChange}
-                onDismiss={hideDatePicker}
-              />
-            )}
-
-            <View style={styles.containerDateTwo}>
-              <View style={styles.selectTime}>
-                <TouchableOpacity onPress={toggleTimeStartPicker}>
-                  <Text>{hourStart ? `Heure de début : ` : "Choisir l'heure de début"}</Text>
-                </TouchableOpacity>
+          <View style={styles.selectDate}>
+            <TouchableOpacity onPress={toggleDatePicker} style={styles.btnAjout}>
+              <View style={styles.plus}>
+                <FontAwesome name="plus" size={15} color={"white"} />
               </View>
+              <Text>{dateText ? dateText : "Date" }</Text>
+              {Platform.OS === "ios" && (
+                <DateTimePicker
+                  style={styles.datePicker}
+                  value={selectedDate}
+                  mode="date"
+                  display="default"
+                  onChange={handleDateChange}
+                />
+              )}
+
+              {showDatePicker && Platform.OS === "android" && (
+                <DateTimePicker
+                  style={styles.datePicker}
+                  value={selectedDate}
+                  mode="date"
+                  display="calendar"
+                  onChange={handleDateChange}
+                  onDismiss={hideDatePicker}
+                />
+              )}
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.selectTime}>
+            <TouchableOpacity onPress={toggleTimeStartPicker} style={styles.btnAjout}>
+              <View style={styles.plus}>
+                <FontAwesome name="plus" size={15} color={"white"} />
+              </View>
+              <Text>{hourStartText ? hourStartText : "Heure de début"}</Text>
 
               {showTimeStartPicker && (
                 <DateTimePicker
@@ -375,12 +419,16 @@ export default function PublishScreen() {
                   onChange={handleTimeStartChange}
                 />
               )}
+            </TouchableOpacity>
+          </View>
 
-              <View style={styles.selectTime}>
-                <TouchableOpacity onPress={toggleTimeEndPicker}>
-                  <Text style={styles.hourFin}>{hourEnd ? `Heure de fin :` : "Choisir l'heure de fin"}</Text>
-                </TouchableOpacity>
+          <View style={styles.selectTime}>
+            <TouchableOpacity onPress={toggleTimeEndPicker} style={styles.btnAjout}>
+            <View style={styles.plus}>
+                <FontAwesome name="plus" size={15} color={"white"} />
               </View>
+              <Text>{hourEndText ? hourEndText : "Heure de fin"}</Text>
+
 
               {showTimeEndPicker && (
                 <DateTimePicker
@@ -391,16 +439,16 @@ export default function PublishScreen() {
                   onChange={handleTimeEndChange}
                 />
               )}
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
 
         <View>
-          <TextInput placeholder="price" onChangeText={(value) => setPrice(value)} value={price} style={styles.input} />
+          <TextInput placeholder="Prix" onChangeText={(value) => setPrice(value)} value={price} style={styles.input} />
         </View>
 
         <View style={styles.description}>
-          <TextInput placeholder="description" onChangeText={(value) => setDescription(value)} value={description} />
+          <TextInput placeholder="Description" onChangeText={(value) => setDescription(value)} value={description} />
         </View>
       </View>
 
@@ -443,47 +491,52 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center", // Ajout de cette ligne pour centrer verticalement les éléments
   },
-  hourFin: {
-    marginBottom: 5,
-  },
-
-  containerDateTwo: {
+  // hourFin: {
+  //   marginBottom: 5,
+  // },
+  containerDate: {
     flexDirection: "row",
-    marginTop: 10,
+    // marginTop: 10,
     justifyContent: "space-between",
+    marginBottom: 10,
   },
+  // containerDateTwo: {
+  //   flexDirection: "row",
+  //   marginTop: 10,
+  //   justifyContent: "space-between",
+  // },
 
-  datePicker: {
-    position: "absolute",
-    borderRadius: 5,
-    borderColor: "rgba(22, 21, 25, 1)",
-    borderWidth: 1,
-    height: 30,
-    width: 100,
-    marginLeft: 10,
-  },
+  // datePicker: {
+  //   position: "absolute",
+  //   borderRadius: 5,
+  //   borderColor: "rgba(22, 21, 25, 1)",
+  //   borderWidth: 1,
+  //   height: 30,
+  //   width: 100,
+  //   marginLeft: 10,
+  // },
 
-  datePickerStart: {
-    position: "absolute",
-    borderRadius: 5,
-    borderColor: "rgba(22, 21, 25, 1)",
-    borderWidth: 1,
-    height: 30,
-    marginLeft: 140,
-    marginTop: -10,
-    width: 70,
-  },
+  // datePickerStart: {
+  //   position: "absolute",
+  //   borderRadius: 5,
+  //   borderColor: "rgba(22, 21, 25, 1)",
+  //   borderWidth: 1,
+  //   height: 30,
+  //   marginLeft: 140,
+  //   marginTop: -10,
+  //   width: 70,
+  // },
 
-  datePickerEnd: {
-    position: "absolute",
-    borderRadius: 5,
-    borderColor: "rgba(22, 21, 25, 1)",
-    borderWidth: 1,
-    height: 30,
-    marginLeft: 240,
-    marginTop: -10,
-    width: 70,
-  },
+  // datePickerEnd: {
+  //   position: "absolute",
+  //   borderRadius: 5,
+  //   borderColor: "rgba(22, 21, 25, 1)",
+  //   borderWidth: 1,
+  //   height: 30,
+  //   marginLeft: 240,
+  //   marginTop: -10,
+  //   width: 70,
+  // },
 
   title: {
     fontSize: 20,
@@ -608,5 +661,13 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     borderRadius: 5,
     fontSize: 16,
+  },
+  imageBackground: {
+    // flex: 1,
+    height: 1000,
+    width: 400,
+    alignItems: "center",
+    justifyContent: "center",
+    // resizeMode: 'cover', // ou 'stretch' en fonction de votre préférence
   },
 });

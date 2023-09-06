@@ -19,6 +19,8 @@
     "expo": "48",
     "expo-auth-session": "~4.0.3",
     "expo-crypto": "~12.2.1",
+    "expo-image-manipulator": "^11.3.0",
+    "expo-image-picker": "^14.3.2",
     "expo-location": "~15.1.1",
     "expo-status-bar": "~1.4.4",
     "expo-updates": "~0.16.4",
